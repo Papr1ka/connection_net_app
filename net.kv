@@ -1,0 +1,263 @@
+#:kivy 2.1.0
+#:import C kivy.utils.get_color_from_hex
+
+<MainRootWidget>:
+    WindowManager:
+        id: screen_manager
+        LoginWindow:
+            id: login_window
+        AppWindow:
+            id: app_window
+        SettingsWindow:
+            id: settings_window
+
+<ContactsWidget>:
+    cols: 1
+    spacing: 5
+    size_hint: None, None
+
+
+<SettingsWindow>:
+    name: "settingsframe"
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1
+
+        MDToolbar:
+            title: "Настройки"
+            left_action_items: [["arrow-left", lambda x: app.open_main_window()]]
+            md_bg_color: app.input_color
+            specific_text_color: app.text_color
+        
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "24dp"
+
+            Label:
+                size_hint_y: 0.2
+                text: "Текст"
+                color: app.text_color
+
+            MDBoxLayout:
+                size_hint_y: 0.15
+                orientation: 'horizontal'
+                Label:
+                    color: app.text_color
+                    font_size: app.text_size
+                    text: "Размер текста"
+                    size_hint_x: 0.5
+                MDSlider:
+                    size_hint_x: 0.5
+                    id: text_size
+                    thumb_color_active: "red"
+                    thumb_color_inactive: "red"
+                    color: "red"
+                    hint: True
+                    min: 8
+                    max: 32
+                    value: app.text_size
+                    step: 1
+            
+            Label:
+                size_hint_y: 0.2
+                text: "Тема"
+                color: app.text_color
+
+            MDBoxLayout:
+                size_hint_y: 0.15
+                orientation: 'horizontal'
+                Label:
+                    color: app.text_color
+                    font_size: app.text_size
+                    text: "Тёмная/Светлая"
+                    pos_hint: {'center_y': 0.5}
+                MDBoxLayout:
+                    pos_hint: {'center_y': 0.5}
+                    orientation: 'vertical'
+                    MDIconButton:
+                        id: theme
+                        icon: 'theme-light-dark'
+                        on_press: app.change_theme_color()
+                        pos_hint: {'center_x': 0.5}
+
+            Widget:
+                size_hint_y: 0.65
+        Widget:
+
+
+<Row@FloatLayout>:
+    canvas.before:
+        Color:
+            rgba: app.theme_cls.accent_color
+        RoundedRectangle:
+            radius: [8]
+            size: self.size[0] - 8, self.size[1] - 8
+            pos: self.pos[0] + 8, self.pos[1] + 8
+    Label:
+        color: app.text_color
+        font_size: app.text_size
+        max_lines: 3
+        size_hint: None, None
+        size: self.texture_size
+        pos_hint: root.pos_hint
+        padding: (5, 0)
+        text_size: root.width * 0.8, None
+        halign: root.halign
+        text: root.text
+        markup: True
+
+<AppWindow>:
+    name: "mainframe"
+    BoxLayout:
+        size_hint: 1, 1
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        SidebarWidget:
+            canvas:
+                Color:
+                    rgba: app.theme_cls.accent_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            orientation: 'vertical'
+            size_hint: 0.2, 1
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, 0.05
+                padding: 5
+                MDIconButton:
+                    icon: "refresh"
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    on_press: app.refresh_contacts()
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    SmothTextInput:
+                        id: search_users
+                        hint_text: "поиск"
+                        pos_hint: {"center_x": 0.5, "center_y": 1}
+            BoxLayout:
+                size_hint: 1, 0.9
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    MDList:
+                        id: contacts
+            BoxLayout:
+                size_hint: 1, 0.05
+                orientation: 'vertical'
+                MDIconButton:
+                    pos_hint: {'x': 0}
+                    icon: "cog"
+                    on_press: app.open_settings_custom()
+                    
+        
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                color: app.text_color
+                size_hint: 1, 0.05
+                font_size: 20
+                id: chatname
+                text: '[b]Пригласите друзей![/b]'
+                markup: True
+            RecycleView:
+                id: messages_scroll_view
+                data: app.data
+                viewclass: 'Row'
+                do_scroll_x: False
+                do_scroll_y: True
+                scroll_wheel_distance: 50
+                smooth_scroll_end: 15
+                size_hint: 1, 0.95
+                on_scroll_y: app.check_pull_refresh(self, messages)
+                RecycleGridLayout:
+                    id: messages
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    default_size_hint: 1, None
+                    size_hint_x: 1
+
+            SmothTextInput:
+                size_hint: 1, 0.05
+                id: send_message
+                padding: (10, 10)
+                hint_text: "ваше сообщение"
+                mode: "rectangle"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+<LoginWindow>:
+    name: "loginframe"
+    MDCard:
+        id: error_widget
+        size_hint: None, None
+        size: 300, 400
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        elevation: 10
+        padding: 25
+        spacing: 25
+        orientation: "vertical"
+        canvas:
+            Color:
+                rgba: app.theme_cls.accent_color
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        MDLabel:
+            id: welcome_label
+            text: "СВЯЗИ.НЕТ"
+            font_size: 40
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 15
+        MDTextFieldRound:
+            id: username
+            hint_text: "username"
+            icon_right: "account"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+            normal_color: app.input_color
+            foreground_color: (0.95, 0.95, 0.95, 1)
+        
+        MDTextFieldRound:
+            id: password
+            hint_text: "password"
+            icon_right: "eye-off"
+            size_hint_x: None
+            width: 200
+            font_size: 18
+            pos_hint: {"center_x": 0.5}
+            password: True
+            normal_color: app.input_color
+            foreground_color: (0.95, 0.95, 0.95, 1)
+        
+        MDRoundFlatButton:
+            text: "LOG IN"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press: app.logger()
+        
+        MDRoundFlatButton:
+            text: "REGISTER"
+            font_size: 12
+            pos_hint: {"center_x": 0.5}
+            on_press: app.register()
+
+
+<SmothTextInput@TextInput>:
+    background_color: app.input_color
+    background_normal: ''
+    cursor_color: (1, 1, 1, 1)
+    foreground_color: app.text_color
+    font_size: 18
+    multiline: False
+    width: self.width
+
+
+
